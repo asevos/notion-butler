@@ -4,12 +4,12 @@ using Telegram.Bot.Args;
 
 namespace NotionButler
 {
-    public class TelegramClient
+    public class TelegramWorker
     {
         private readonly TelegramBotClient _botClient;
         private readonly long _ownerId;
 
-        public TelegramClient(string token, long ownerId)
+        public TelegramWorker(string token, long ownerId)
         {
             this._botClient = new TelegramBotClient(token);
             this._ownerId = ownerId;
@@ -23,6 +23,7 @@ namespace NotionButler
         private void SetOnMessageBehavior()
         {
             _botClient.OnMessage += OnOwnerMessage;
+            _botClient.OnMessage += OnOtherMessage;
         }
 
         private async void OnOwnerMessage(object sender, MessageEventArgs e)

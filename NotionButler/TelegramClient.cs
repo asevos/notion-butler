@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
-using Telegram.Bot.Types;
 
 namespace NotionButler
 {
@@ -30,6 +29,14 @@ namespace NotionButler
             if (e.Message.Chat.Id == _ownerId)
             {
                 await SendMessageToOwner($"Ты просишь '{e.Message.Text}', но ты меня этому ещё не научил");
+            }
+        }
+
+        private async void OnOtherMessage(object sender, MessageEventArgs e)
+        {
+            if (e.Message.Chat.Id != _ownerId)
+            {
+                await _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Я тебя не знаю");
             }
         }
 

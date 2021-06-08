@@ -8,8 +8,9 @@ namespace NotionButler
     {
         private readonly TelegramBotClient _botClient;
         private readonly long _ownerId;
+        private readonly NotionWorker _notionClient;
 
-        public TelegramWorker(string token, long ownerId)
+        public TelegramWorker(string token, long ownerId, NotionWorker notionClient)
         {
             this._botClient = new TelegramBotClient(token);
             this._ownerId = ownerId;
@@ -18,6 +19,7 @@ namespace NotionButler
 
             _botClient.StartReceiving();
             _botClient.SendTextMessageAsync(_ownerId, "[Bot started]").Wait();
+            _notionClient = notionClient;
         }
 
         private void SetOnMessageBehavior()
@@ -30,12 +32,14 @@ namespace NotionButler
         {
             if (e.Message.Chat.Id == _ownerId)
             {
-                await SendMessageToOwner($"Ты просишь '{e.Message.Text}', но ты меня этому ещё не научил");
+                await _notionClient.AddTodoToInbox(e.Message.Text);
+                await SendMessageToOwner($"Добавил в инбокс 👌");
             }
         }
 
         private async void OnOtherMessage(object sender, MessageEventArgs e)
         {
+            // TODO: Add suggestions
             if (e.Message.Chat.Id != _ownerId)
             {
                 await _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Я тебя не знаю");

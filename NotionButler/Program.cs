@@ -12,7 +12,6 @@ namespace NotionButler
             var telegramId = long.Parse(Environment.GetEnvironmentVariable("TELEGRAM_ID"));
 
             var telegramClient = new TelegramClient(botToken, telegramId);
-            await telegramClient.SendMessageToOwner("Ya zapustilsya");
 
             Console.WriteLine("Press any key to exit");
             Console.ReadKey();

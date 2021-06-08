@@ -17,6 +17,7 @@ namespace NotionButler
             SetOnMessageBehavior();
 
             _botClient.StartReceiving();
+            _botClient.SendTextMessageAsync(_ownerId, "[Bot started]").Wait();
         }
 
         private void SetOnMessageBehavior()

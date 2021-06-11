@@ -25,28 +25,42 @@ namespace NotionButler
 
             while (true)
             {
-                var waitTime = Utils.CalcTimeToNextFetch(fetchTime);
-                Console.WriteLine($"Next fetch in {waitTime.ToString()}");
-                await Task.Delay(waitTime);
-
-                var fetchInboxTask = notion.FetchInboxTodos();
-                var fetchCurrentTodosTask = notion.FetchCurrentTodos();
-                await Task.WhenAll(fetchInboxTask, fetchCurrentTodosTask);
-
-                var currentTodos = fetchCurrentTodosTask.Result;
-                var inbox = fetchInboxTask.Result;
-
-                if (currentTodos.Count > 0)
+                try
                 {
-                    var resultMessage = "Доброе утро! Сегодняшние дела:";
-                    resultMessage += Utils.GetAllTitlesAsBulletedList(currentTodos);
-                    if (inbox.Count > 0)
-                    {
-                        resultMessage += $"\nЗадач в инбоксе: {inbox.Count}";
-                    }
-
-                    await telegram.SendMessageToOwner(resultMessage);
+                    await CheckTodos(notion, telegram, fetchTime);
                 }
+                catch (System.Exception e)
+                {
+                    Console.WriteLine("Unexpected error during todos check");
+                    Console.WriteLine(e);
+                    await telegram.SendMessageToOwner(e.ToString());
+                }
+            }
+        }
+
+        static async Task CheckTodos(NotionWorker notion, TelegramWorker telegram, TimeSpan fetchTime)
+        {
+            var waitTime = Utils.CalcTimeToNextFetch(fetchTime);
+            Console.WriteLine($"Next fetch in {waitTime.ToString()}");
+            await Task.Delay(waitTime);
+
+            var fetchInboxTask = notion.FetchInboxTodos();
+            var fetchCurrentTodosTask = notion.FetchCurrentTodos();
+            await Task.WhenAll(fetchInboxTask, fetchCurrentTodosTask);
+
+            var currentTodos = fetchCurrentTodosTask.Result;
+            var inbox = fetchInboxTask.Result;
+
+            if (currentTodos.Count > 0)
+            {
+                var resultMessage = "Доброе утро! Сегодняшние дела:";
+                resultMessage += Utils.GetAllTitlesAsBulletedList(currentTodos);
+                if (inbox.Count > 0)
+                {
+                    resultMessage += $"\nЗадач в инбоксе: {inbox.Count}";
+                }
+
+                await telegram.SendMessageToOwner(resultMessage);
             }
         }
     }

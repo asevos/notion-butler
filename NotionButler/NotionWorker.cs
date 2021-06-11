@@ -17,7 +17,7 @@ namespace NotionButler
             _databaseId = databaseId;
         }
 
-        public async Task<List<RetrievedPage>> FetchCurrentTodos()
+        public async Task<List<Page>> FetchCurrentTodos()
         {
             var queryParams = new DatabasesQueryParameters { Filter = GetCurrentTodosFilter() };
             var pages = await _client.Databases.QueryAsync(_databaseId, queryParams);
@@ -40,7 +40,7 @@ namespace NotionButler
             return new CompoundFilter(and: new List<Filter> { statusesFilterGroup, todayFilter });
         }
 
-        public async Task<List<RetrievedPage>> FetchInboxTodos()
+        public async Task<List<Page>> FetchInboxTodos()
         {
             var queryParams = new DatabasesQueryParameters { Filter = GetInboxTodosFilter() };
             var pages = await _client.Databases.QueryAsync(_databaseId, queryParams);
@@ -71,7 +71,7 @@ namespace NotionButler
             return new CompoundFilter(or: allConditions);
         }
 
-        public async Task<RetrievedPage> AddTodoToInbox(string title)
+        public async Task<Page> AddTodoToInbox(string title)
         {
             var todoParent = new DatabaseParent
             {
@@ -85,7 +85,7 @@ namespace NotionButler
                 }
             };
 
-            var todo = new CreatedPage(todoParent).AddProperty("Что", todoTitle);
+            var todo = new NewPage(todoParent).AddProperty("Что", todoTitle);
             return await _client.Pages.CreateAsync(todo);
         }
     }

@@ -7,14 +7,14 @@ namespace NotionButler
 {
     public static class Utils
     {
-        public static string GetTodoTitle(RetrievedPage page)
+        public static string GetTodoTitle(Page page)
         {
             PropertyValue title;
             page.Properties.TryGetValue("Что", out title);
             return ((TitlePropertyValue)title).Title[0].PlainText;
         }
 
-        public static string GetAllTitlesAsBulletedList(List<RetrievedPage> pages)
+        public static string GetAllTitlesAsBulletedList(List<Page> pages)
         {
             return pages.Aggregate("", (result, page) => result += $"\n- {GetTodoTitle(page)}");
         }

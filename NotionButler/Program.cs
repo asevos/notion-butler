@@ -7,15 +7,14 @@ namespace NotionButler
     {
         static async Task Main(string[] args)
         {
-            // Fetching env variables
+            // Setting env variables
 
             DotNetEnv.Env.Load("../prod.env");
             var botToken = Environment.GetEnvironmentVariable("BOT_TOKEN");
             var ownerId = long.Parse(Environment.GetEnvironmentVariable("TELEGRAM_ID"));
             var notionToken = Environment.GetEnvironmentVariable("NOTION_TOKEN");
             var tasksDbId = Environment.GetEnvironmentVariable("TASKS_DB_ID");
-            // TODO - make env variable for this?
-            var fetchTasksTime = TimeSpan.FromMinutes(3 * 60 + 38);
+            var fetchTime = TimeSpan.Parse(Environment.GetEnvironmentVariable("DAILY_FETCH_TIME"));
 
             // Instanciating clients
 
@@ -26,7 +25,7 @@ namespace NotionButler
 
             while (true)
             {
-                var waitTime = Utils.CalcTimeToNextFetch(fetchTasksTime);
+                var waitTime = Utils.CalcTimeToNextFetch(fetchTime);
                 Console.WriteLine($"Next fetch in {waitTime.ToString()}");
                 await Task.Delay(waitTime);
 

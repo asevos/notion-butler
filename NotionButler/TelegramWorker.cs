@@ -14,12 +14,12 @@ namespace NotionButler
         {
             this._botClient = new TelegramBotClient(token);
             this._ownerId = ownerId;
+            _notionClient = notionClient;
 
             SetOnMessageBehavior();
 
             _botClient.StartReceiving();
             _botClient.SendTextMessageAsync(_ownerId, "[Bot started]").Wait();
-            _notionClient = notionClient;
         }
 
         private void SetOnMessageBehavior()

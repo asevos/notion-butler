@@ -23,8 +23,8 @@ namespace NotionButler
 
             if (startDate != null)
             {
-                var time = ((DateTime)startDate).ToString("t", _culture);
-                if (time != "00:00") return $"{time} - {titleText}";
+                var time = ((DateTime)startDate).TimeOfDay;
+                if (time > TimeSpan.Zero) return $"{time.Hours}:{time.Minutes} - {titleText}";
             }
 
             return titleText;

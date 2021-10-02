@@ -9,6 +9,7 @@ namespace NotionButler
     {
         private readonly NotionClient _client;
         private readonly string _databaseId;
+        private static int _pageSize = 100;
 
         public NotionWorker(string authToken, string databaseId)
         {
@@ -17,13 +18,52 @@ namespace NotionButler
             _databaseId = databaseId;
         }
 
+        public async Task<Page> AddTodoToInbox(string title)
+        {
+            var todoParent = new DatabaseParent
+            {
+                DatabaseId = _databaseId,
+            };
+            var todoTitle = new TitlePropertyValue
+            {
+                Title = new List<RichTextBase>
+                {
+                    new RichTextText { Text = new Text { Content = title } },
+                }
+            };
+
+            var todo = new NewPage(todoParent).AddProperty("Что", todoTitle);
+            return await _client.Pages.CreateAsync(todo);
+        }
+
         public async Task<List<Page>> FetchCurrentTodos()
         {
-            var queryParams = new DatabasesQueryParameters { Filter = GetCurrentTodosFilter() };
-            var pages = await _client.Databases.QueryAsync(_databaseId, queryParams);
+            return await GetAllQueryPages(GetCurrentTodosFilter());
+        }
 
-            // TODO: create list of all pages (HasMore might be true)
-            return pages.Results;
+        public async Task<List<Page>> FetchInboxTodos()
+        {
+            return await GetAllQueryPages(GetInboxTodosFilter());
+        }
+
+        public async Task<List<Page>> GetAllQueryPages(Filter queryFilter)
+        {
+            var queryParams = new DatabasesQueryParameters { Filter = queryFilter, PageSize = _pageSize };
+            var queryResponse = await _client.Databases.QueryAsync(_databaseId, queryParams);
+
+            if (queryResponse.HasMore)
+            {
+                var results = new List<Page>();
+                results.AddRange(queryResponse.Results);
+                while (queryResponse.HasMore)
+                {
+                    queryParams.StartCursor = queryResponse.NextCursor;
+                    queryResponse = await _client.Databases.QueryAsync(_databaseId, queryParams);
+                    results.AddRange(queryResponse.Results);
+                }
+                return results;
+            }
+            else return queryResponse.Results;
         }
 
         private CompoundFilter GetCurrentTodosFilter()
@@ -38,15 +78,6 @@ namespace NotionButler
 
             var todayFilter = new DateFilter("Когда", onOrBefore: DateTime.Today);
             return new CompoundFilter(and: new List<Filter> { statusesFilterGroup, todayFilter });
-        }
-
-        public async Task<List<Page>> FetchInboxTodos()
-        {
-            var queryParams = new DatabasesQueryParameters { Filter = GetInboxTodosFilter() };
-            var pages = await _client.Databases.QueryAsync(_databaseId, queryParams);
-
-            // TODO: create list of all pages (HasMore might be true)
-            return pages.Results;
         }
 
         private CompoundFilter GetInboxTodosFilter()
@@ -69,24 +100,6 @@ namespace NotionButler
 
             var allConditions = new List<Filter> { currentSetAside, emptyDateNotBacklog, emptyStatus };
             return new CompoundFilter(or: allConditions);
-        }
-
-        public async Task<Page> AddTodoToInbox(string title)
-        {
-            var todoParent = new DatabaseParent
-            {
-                DatabaseId = _databaseId,
-            };
-            var todoTitle = new TitlePropertyValue
-            {
-                Title = new List<RichTextBase>
-                {
-                    new RichTextText { Text = new Text { Content = title } },
-                }
-            };
-
-            var todo = new NewPage(todoParent).AddProperty("Что", todoTitle);
-            return await _client.Pages.CreateAsync(todo);
         }
     }
 }

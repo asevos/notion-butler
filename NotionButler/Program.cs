@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace NotionButler
@@ -11,7 +12,7 @@ namespace NotionButler
 
             DotNetEnv.Env.Load("../prod.env");
             var botToken = Environment.GetEnvironmentVariable("BOT_TOKEN");
-            var ownerId = long.Parse(Environment.GetEnvironmentVariable("TELEGRAM_ID"));
+            var ownerId = long.Parse(Environment.GetEnvironmentVariable("BOT_OWNER_ID"));
             var notionToken = Environment.GetEnvironmentVariable("NOTION_TOKEN");
             var tasksDbId = Environment.GetEnvironmentVariable("TASKS_DB_ID");
             var fetchTime = TimeSpan.Parse(Environment.GetEnvironmentVariable("DAILY_FETCH_TIME"));
@@ -53,14 +54,12 @@ namespace NotionButler
 
             if (currentTodos.Count > 0)
             {
-                var resultMessage = "Доброе утро! Сегодняшние дела:";
-                resultMessage += Utils.GetAllTitlesAsBulletedList(currentTodos);
-                if (inbox.Count > 0)
-                {
-                    resultMessage += $"\nЗадач в инбоксе: {inbox.Count}";
-                }
+                var notification = new StringBuilder("Доброе утро! ");
+                if (inbox.Count > 0) notification.Append($"Задач в инбоксе: {inbox.Count}. ");
+                notification.Append("Сегодняшние дела:");
+                notification.Append(Utils.GetAllTitlesAsBulletedList(currentTodos));
 
-                await telegram.SendMessageToOwner(resultMessage);
+                await telegram.SendMessageToOwner(notification.ToString());
             }
         }
     }
